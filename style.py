@@ -20,23 +20,6 @@ ask = Ask(app, "/style")
 
 logging.getLogger("flask_ask").setLevel(logging.DEBUG)
 
-def send_MMS(img_url, set_title):
-    account_sid = "AC8d9789a94adb78a2ad0fcef067433ce6" # Your Account SID from www.twilio.com/console
-    auth_token  = "bcb3b5a6a27f25e5d75f1ec9937a8177"  # Your Auth Token from www.twilio.com/console
-
-    client = TwilioRestClient(account_sid, auth_token)
-
-    note = "Polyvore Outfit" + " - " + set_title
-    image = img_url
-    message = client.messages.create(
-        body=note,
-        media_url = image,
-        to="+14082214602",    # Replace with your phone number
-        from_="+14083594033" # Replace with your Twilio number
-    )
-    print(message.sid)
-
-
 @ask.launch
 def greeting():
     welcome_msg = render_template('style_welcome')
@@ -70,7 +53,6 @@ def advice():
 
                                  )
     advice_msg +=  render_template('style_mms')
-    send_MMS(p_set.img_url, p_set.title)
     return statement(advice_msg)
 
 
