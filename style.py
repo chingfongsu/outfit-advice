@@ -4,7 +4,7 @@ from random import sample, randint
 
 from flask import Flask, render_template
 
-from flask_ask import Ask, statement, question, session, audio
+from flask_ask import Ask, statement, question, session
 from __builtin__ import str
 
 from twilio.rest import TwilioRestClient
@@ -35,7 +35,6 @@ def advice():
     
     set_json_str = fetch_set_details(p_set.id)
     products = pick_products_from_set(set_json_str)
-    print products[0].id, products[1].id
     advice_msg = render_template('style_outfit', 
                                  set_title=p_set.title, 
                                  set_creator=p_set.creator)
@@ -52,7 +51,6 @@ def advice():
                                  prod2_retailer = products[1].retailer                                 
 
                                  )
-    advice_msg +=  render_template('style_mms')
     return statement(advice_msg)
 
 

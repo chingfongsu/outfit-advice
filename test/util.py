@@ -81,10 +81,6 @@ class test_util(unittest.TestCase):
         anchor = get_product_anchor(182825885)
         print anchor
         self.assertEqual('self-portrait dresses', anchor, 'get the wrong anchor')
-    
-    def test_pick_random_adj(self):
-        print pick_random_adj()
-
         
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

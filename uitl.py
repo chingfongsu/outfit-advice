@@ -3,7 +3,6 @@ Created on Dec 20, 2016
 
 @author: cfsu
 '''
-from _mysql import NULL
 import json
 import requests
 import random
