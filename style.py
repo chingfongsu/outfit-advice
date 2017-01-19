@@ -51,13 +51,17 @@ def advice():
                                  prod2_retailer = products[1].retailer                                 
 
                                  )
-    return statement(advice_msg)
-
+    return statement(advice_msg) \
+        .standard_card(title='Outfit of the Day',
+                       text=p_set.title + ' by ' + p_set.creator,
+                       small_image_url=p_set.resized_img_url,
+                       large_image_url=None)
 
 @ask.intent("NoIntent")
 def no_advice():
     advice_msg = render_template('style_no_advice')
     return statement(advice_msg)
+        
 @ask.intent('AMAZON.StopIntent')
 def stop():
     return statement("Goodbye")

@@ -6,11 +6,20 @@ Created on Dec 20, 2016
 import json
 import requests
 import random
+from PIL import Image
+from resizeimage import resizeimage
+import cStringIO
+import boto
+from boto.s3.key import Key
+
 
 synonyms = ['beautiful', 'cute', 'delicate', 'elegant', 'fine',
             'gorgeous', 'lovely', 'magnificent', 'pretty', 'wonderful',
             'charming', 'delightful'
             ]
+
+IMAGE_S3_BUCKET = 'pv-advice'
+IMAGE_SIZE = [720, 480]
 
 class PolyvoreSet(object):
     '''
@@ -24,6 +33,7 @@ class PolyvoreSet(object):
         self.title = params['title']
         self.creator = params['creator']
         self.img_url= params['img_url']
+        self.resized_img_url = params['resized_img_url']
 
 class PolyvoreProduct(object):
     '''
@@ -50,16 +60,44 @@ def pick_set_from_trend_json(json_str, index=0):
         params['id'] = r_json['content']['items'][index]['items'][0]['id']
         params['creator'] = r_json['content']['items'][index]['items'][0]['creator']['name']
         params['img_url'] = r_json['content']['items'][index]['items'][0]['img_urls']['l']
+        params['resized_img_url'] = 'https://s3-us-west-2.amazonaws.com/pv-advice/' + str(params['id']) + '.jpg'
 
         p_set = PolyvoreSet(params)
         return p_set
+
+def pick_set_ids_from_trend_json(json_str):
+    params = {}
+    set_ids = []
+    if json_str == "":
+        return None
+    else:
+        r_json = json.loads(json_str)
+        index = 0
+
+        while (True):
+            try:
+                dummy = r_json['content']['items'][index]
+            except:
+                break
+            set_ids.append(r_json['content']['items'][index]['items'][0]['id'])
+            index += 1            
+    return set_ids
+
 
 def fetch_wear_trend():
     r = requests.get('http://api.polyvore.com/trend/wear/stream')
     json_str = json.dumps(r.json())
     return json_str
 
+def upload_wear_trend_images(set_ids):
+    for id in set_ids:        
+        orig_img_url = 'http://ak1.polyvoreimg.com/cgi/img-set/cid/' + str(id) + '/size/y.jpg'
+        new_img = image_resize(orig_img_url, IMAGE_SIZE)
+        copy_image_to_s3(IMAGE_S3_BUCKET, new_img, str(id) + '.jpg')
+
+
 def fetch_set_details(id):
+    print id
     r = requests.get('http://api.polyvore.com/1.0/set/' + str(id))
     json_str = json.dumps(r.json())
     return json_str
@@ -106,3 +144,26 @@ def trim_string_by_words(s, n):
 
 def pick_random_adj():
     return synonyms[random.randint(0, len(synonyms)-1)] + ' '
+
+def image_resize(url, dimensions):
+    with Image.open(requests.get(url, stream=True).raw) as image:
+        cover = resizeimage.resize_cover(image, dimensions)
+        return cover
+
+def copy_image_to_s3(bucket_name, img, file_name):
+    img_out = cStringIO.StringIO()
+    img.save(img_out, 'JPEG')
+    #setup the bucket
+    conn = boto.connect_s3()
+    bucket = conn.get_bucket(bucket_name, validate=False)
+    img_file = Key(bucket)
+    img_file.key = file_name
+    img_file.content_type = "image/jpeg"
+    img_file.set_contents_from_string(img_out.getvalue(), policy='public-read')
+    
+def del_image_on_s3(bucket_name, file_name):
+    conn = boto.connect_s3()
+    bucket = conn.get_bucket(bucket_name, validate=False)
+    img_file = Key(bucket)
+    img_file.key = file_name
+    bucket.delete_key(img_file)
