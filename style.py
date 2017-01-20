@@ -7,7 +7,6 @@ from flask import Flask, render_template
 from flask_ask import Ask, statement, question, session
 from __builtin__ import str
 
-from twilio.rest import TwilioRestClient
 from uitl import pick_set_from_trend_json, fetch_set_details, get_category_name,\
     trim_string_by_words, pick_random_adj
 

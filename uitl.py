@@ -93,6 +93,7 @@ def upload_wear_trend_images(set_ids):
     for id in set_ids:        
         orig_img_url = 'http://ak1.polyvoreimg.com/cgi/img-set/cid/' + str(id) + '/size/y.jpg'
         new_img = image_resize(orig_img_url, IMAGE_SIZE)
+        print "upload image set id: {}".format(id)
         copy_image_to_s3(IMAGE_S3_BUCKET, new_img, str(id) + '.jpg')
 
 
