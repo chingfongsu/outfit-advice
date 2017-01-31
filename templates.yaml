@@ -1,4 +1,4 @@
-style_welcome: Welcome to Polyvore style advice. Are you interested in outfit of the day ?
+style_welcome: Welcome to Polyvore outfit advice. Are you interested in outfit of the day ?
 style_outfit: Today we recommend a beautiful outfit of,  {{ set_title }}, that is created by a Polyvore user, {{ set_creator }} , 
-style_product: The outfit features a {{ prod0_anchor }} from, {{ prod0_retailer }} , a {{ prod1_anchor }} from {{ prod1_retailer }} , and a {{ prod2_anchor }} from {{ prod2_retailer }} , In case you are interested,  I also send the outfit picture to your phone. Take a look! 
+style_product: The outfit features a {{ prod0_anchor }}, a {{ prod1_anchor }}, and a {{ prod2_anchor }}, In case you are interested,  I also send the outfit picture to your phone. Take a look! 
 style_no_advice:  No problem. You have a nice day!

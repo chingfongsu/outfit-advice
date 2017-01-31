@@ -1,0 +1,12 @@
+{
+    "dev": {
+        "app_function": "style.app", 
+        "aws_region": "us-west-2",
+        "s3_bucket": "zappa-mzv2mlyih"
+        "events": [{
+        	"function": "preload_image.load_images", // The function to execute
+        	"expression": "cron(* */12 * * ? *)" // When to execute it (in cron or rate format)
+       }],
+    }
+}
+

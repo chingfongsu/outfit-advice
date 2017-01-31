@@ -8,7 +8,8 @@ from uitl import PolyvoreSet, pick_set_from_trend_json, fetch_wear_trend,\
     pick_products_from_set, get_category_name, trim_string_by_words,\
     get_product_anchor, pick_random_adj, image_resize, IMAGE_S3_BUCKET,\
     copy_image_to_s3, del_image_on_s3, pick_set_ids_from_trend_json, \
-    upload_wear_trend_images
+    upload_wear_trend_images, get_product_seo_term, build_color_dict,\
+    get_product_color
 import requests
 import json
 from PIL import Image
@@ -117,6 +118,30 @@ class test_util(unittest.TestCase):
         trend_str = fetch_wear_trend()
         set_ids = pick_set_ids_from_trend_json(trend_str)
         upload_wear_trend_images(set_ids)
+ 
+    @unittest.skip("not a test")   
+    def test_get_product_seo_term(self):
+        id = 192663284
+        term = get_product_seo_term(id)
+        print term
+
+    @unittest.skip("not a test")   
+    def test_get_product_color(self):
+        id = 192663284
+        color_dict = build_color_dict('..')
+        color = get_product_color(id)
+        self.assertEqual(color, 'crimson', "should get the color crimson")
+    
+    def test_build_color_dict(self):
+        color_dict = build_color_dict('..')
+        self.assertEqual(color_dict['#e7e7e7'], 'light gray', "should get the color light gray")
+
+    def test_alexa_cover(self):
+        url = 'http://ak1.polyvoreimg.com/cgi/img-set/cid/117525581/size/y.jpg'
+        dimensions = [512, 512]
+        cover = image_resize(url, dimensions)
+        cover.save('test-image-resized-512-512.jpg')
+
     
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']

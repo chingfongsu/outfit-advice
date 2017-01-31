@@ -11,6 +11,8 @@ from resizeimage import resizeimage
 import cStringIO
 import boto
 from boto.s3.key import Key
+import csv
+import os
 
 
 synonyms = ['beautiful', 'cute', 'delicate', 'elegant', 'fine',
@@ -20,6 +22,27 @@ synonyms = ['beautiful', 'cute', 'delicate', 'elegant', 'fine',
 
 IMAGE_S3_BUCKET = 'pv-advice'
 IMAGE_SIZE = [720, 480]
+COLOR_FILE = 'color.csv'
+COLOR_DICT = {}
+
+def build_color_dict(dir='.'):
+    global COLOR_DICT
+    with open(os.path.join(dir, COLOR_FILE), mode='r') as infile:
+        reader = csv.reader(infile)
+        next(reader)
+        color_dict = { rows[0]:rows[1] for rows in reader}
+    
+    COLOR_DICT = color_dict
+    return color_dict
+
+def get_product_color(id):
+    global COLOR_DICT
+    if COLOR_DICT == {}:
+        COLOR_DICT = build_color_dict()
+    r = requests.get('http://api.polyvore.com/1.0/thing/'+ str(id) + '/colors')
+    r_json = r.json()
+    return COLOR_DICT[r_json['content'][str(id)][0]['value']]
+    
 
 class PolyvoreSet(object):
     '''
@@ -39,6 +62,7 @@ class PolyvoreProduct(object):
     '''
     classdocs
     '''
+    
     def __init__(self, params):
         '''
         Constructor
@@ -49,6 +73,9 @@ class PolyvoreProduct(object):
         self.retailer = params['retailer']
         self.brand= params['brand']
         self.anchor= params['anchor']
+        self.seo_term= params['seo_term']
+        self.color= params['color']
+
 
 def pick_set_from_trend_json(json_str, index=0):
     params = {}
@@ -93,7 +120,7 @@ def upload_wear_trend_images(set_ids):
     for id in set_ids:        
         orig_img_url = 'http://ak1.polyvoreimg.com/cgi/img-set/cid/' + str(id) + '/size/y.jpg'
         new_img = image_resize(orig_img_url, IMAGE_SIZE)
-        print "upload image set id: {}".format(id)
+        print "upload image of set id: {}".format(id)
         copy_image_to_s3(IMAGE_S3_BUCKET, new_img, str(id) + '.jpg')
 
 
@@ -116,7 +143,9 @@ def parse_product_in_the_set(json_str, index=0):
         params['retailer'] =  r_json['content']['things'][index]['object']['host']['display_url']
         params['brand'] = r_json['content']['things'][index]['object']['brand']
         params['anchor'] = get_product_anchor(params['id'])
-
+        params['seo_term'] = get_product_anchor(params['id'])
+        params['color'] = get_product_color(params['id'])
+ 
         p_product = PolyvoreProduct(params)
         return p_product
     
@@ -135,6 +164,11 @@ def get_product_anchor(id):
     r_json = get_product_details(id)
     return r_json['content']['breadcrumb'][-1]['anchor']
 
+def get_product_seo_term(id):
+    r = requests.get('http://api.polyvore.com/1.0/thing/'+ str(id) + '/related_searches')
+    r_json = r.json()
+    return r_json['content'][0]['term']
+
 def get_category_name(id):
     r = requests.get('http://api.polyvore.com/1.0/category/' + str(id) )
     name = r.json()['content']['title']
@@ -149,7 +183,8 @@ def pick_random_adj():
 def image_resize(url, dimensions):
     with Image.open(requests.get(url, stream=True).raw) as image:
         cover = resizeimage.resize_cover(image, dimensions)
-        return cover
+    
+    return cover
 
 def copy_image_to_s3(bucket_name, img, file_name):
     img_out = cStringIO.StringIO()
@@ -168,3 +203,4 @@ def del_image_on_s3(bucket_name, file_name):
     img_file = Key(bucket)
     img_file.key = file_name
     bucket.delete_key(img_file)
+
