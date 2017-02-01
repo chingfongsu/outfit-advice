@@ -2,7 +2,7 @@ import logging
 
 from random import sample, randint
 
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 
 from flask_ask import Ask, statement, question, session
 from __builtin__ import str
@@ -14,10 +14,20 @@ from uitl import PolyvoreSet, pick_set_from_trend_json, fetch_wear_trend, pick_p
 from flask.templating import render_template
 
 app = Flask(__name__)
+app.config['ASK_VERIFY_REQUESTS'] = True
+app.config['ASK_APPLICATION_ID'] = 'amzn1.ask.skill.d1b58160-99d6-4437-9b3b-839bd19d7a3f'
 
 ask = Ask(app, "/style")
 
 logging.getLogger("flask_ask").setLevel(logging.DEBUG)
+
+@app.errorhandler(Exception)
+def unhandled_execption(e):
+    app.logger.error('Unhandled Exception: %s', (e))
+    response = jsonify("")
+    response.status_code = 400
+    return response
+    
 
 @ask.launch
 def greeting():
@@ -60,11 +70,15 @@ def advice():
 def no_advice():
     advice_msg = render_template('style_no_advice')
     return statement(advice_msg)
+
+
+@ask.intent("AMAZON.HelpIntent")
+def help_prompt():
+    return question("Please say Yes, or No!")        
         
 @ask.intent('AMAZON.StopIntent')
 def stop():
     return statement("Goodbye")
-
 
 @ask.intent('AMAZON.CancelIntent')
 def cancel():
@@ -77,5 +91,4 @@ def session_ended():
 
 
 if __name__ == '__main__':
-
-    app.run(debug=True)
+    app.run(debug=False)
